@@ -1,0 +1,5 @@
+[server]
+enableCORS = true
+enableXsrfProtection = true
+maxUploadSize = 200  # MB, bump if you need larger PDB.gz
+port = 8501
