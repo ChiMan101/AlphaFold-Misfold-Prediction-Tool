@@ -133,7 +133,7 @@ def load_model():
 
 # ---------- UI ----------
 
-st.title("🧬 AlphaFold Misfold Prediction Tool")
+st.title("Misfold Prediction Tool")
 st.markdown("This app is an interactive web tool for exploring AlphaFold-predicted protein structures and evaluating their likelihood of misfolding. It combines structural confidence metrics (pLDDT) from AlphaFold with a machine learning model (autoencoder) to highlight stable vs. unstable regions of a protein.")
 st.markdown("Upload an AlphaFold **.pdb** or **.pdb.gz** file to view its description, **UniProt function**, and a misfold prediction.")
 
