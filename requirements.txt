@@ -3,3 +3,4 @@ biopython==1.83
 requests>=2.31
 torch>=2.1
 numpy>=1.26
+pandas>=2.0
