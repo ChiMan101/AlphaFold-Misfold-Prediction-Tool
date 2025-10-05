@@ -52,7 +52,16 @@ def apply_theme(theme: str):
           }
         </style>
         """
-
+    st.markdown(
+        """
+    <style>
+    #GithubIcon {
+        visibility: hidden;
+    }
+    </style>
+    """,
+        unsafe_allow_html=True,
+    )
     base = """
     <style>
       html, body, .stApp { background: var(--bg) !important; color: var(--fg) !important; }
@@ -612,7 +621,7 @@ def render_chatbot_tab(filename, accession, uni_name, uni_function, header_text,
                     st.session_state[chat_key].append({"role": "assistant", "content": local}); st.rerun()
                 try:
                     sys_prompt = ("You are a helpful protein analysis assistant. Answer concisely using ONLY the provided context. "
-                                  "If the answer is not in context, say you don't have enough information. Do not hallucinate.\n\nContext:\n" + ctx)
+                                  "If the answer is not in context, try your best to answer using your knowledge.\n\nContext:\n" + ctx)
                     ans = call_openai_chat(sys_prompt, q.strip())
                     st.session_state[chat_key].append({"role": "assistant", "content": ans})
                 except Exception:
