@@ -24,77 +24,33 @@ load_dotenv()  # loads variables from .env into os.environ
 # =========================================================
 # Streamlit page config
 # =========================================================
-st.set_page_config(page_title="AlphaFold Misfold Prediction Tool", layout="wide")
-
-# Default theme on first load -> LIGHT
-if "theme" not in st.session_state:
-    st.session_state["theme"] = "light"
+st.set_page_config(page_title="Misfold", layout="wide")
 
 # =========================================================
-# THEME: light/dark toggle (CSS variables) + ChatGPT-like layout CSS
+# THEME: Dark-only (Alliance 2 font) + ChatGPT-like layout CSS
 # =========================================================
-def apply_theme(theme: str):
-    if theme not in ("dark", "light"):
-        theme = "light"
-    if theme == "dark":
-        css_vars = """
-        <style>
-          :root{
-            --bg:#0f1116; --fg:#ffffff; --muted:#b9c0cc; --card:#171a22;
-            --border:#262b36; --accent:#69a3da; --accent-2:#8ec0ff;
-            --danger:#d9534f; --success:#38a169;
-          }
-        </style>
-        """
-    else:
-        css_vars = """
-        <style>
-          :root{
-            --bg:#ffffff; --fg:#111416; --muted:#4a4f57; --card:#f6f7f9;
-            --border:#e2e6ee; --accent:#225caa; --accent-2:#427fd8;
-            --danger:#c62828; --success:#2e7d32;
-          }
-        </style>
-        """
+def apply_theme(_: str = "dark"):
+    css_vars = """
+    <style>
+      :root{
+        --bg:#0f1116; --fg:#ffffff; --muted:#b9c0cc; --card:#171a22;
+        --border:#262b36; --accent:#69a3da; --accent-2:#8ec0ff;
+        --danger:#d9534f; --success:#38a169;
+      }
+    </style>
+    """
     base = """
     <style>
-      /* --- Alliance 2 font faces --- */
-      @font-face {
-        font-family: 'Alliance 2';
-        src: url('./fonts/AllianceNo2-Regular.woff2') format('woff2');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'Alliance 2';
-        src: url('./fonts/AllianceNo2-Medium.woff2') format('woff2');
-        font-weight: 500;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'Alliance 2';
-        src: url('./fonts/AllianceNo2-Semibold.woff2') format('woff2');
-        font-weight: 600;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'Alliance 2';
-        src: url('./fonts/AllianceNo2-Bold.woff2') format('woff2');
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-      }
+      /* Load Open Sans (400/600/700) */
+      @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
       /* Global font + colors */
       html, body, .stApp {
         background: var(--bg) !important;
         color: var(--fg) !important;
-        font-family: 'Alliance 2', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-                     Roboto, 'Helvetica Neue', Helvetica, Arial, 'Apple Color Emoji',
-                     'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
+        font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                     Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+        font-weight: 400;
       }
 
       .stMarkdown, p, h1,h2,h3,h4,h5,h6, label, span, div { color: var(--fg); }
@@ -105,15 +61,15 @@ def apply_theme(theme: str):
       }
       .footer-bar{
           position:fixed;left:0;bottom:0;width:100%;
-          background:var(--card);color:var(--fg);padding:8px 12px;
-          font-size:14px;z-index:100;border-top:1px solid var(--border);
-          display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;
+          background: var(--card); color: var(--fg); padding:8px 12px;
+          font-size:14px; z-index:100; border-top:1px solid var(--border);
+          display:flex; gap:14px; justify-content:center; align-items:center; flex-wrap:wrap;
       }
-      .footer-bar a{color:var(--accent);text-decoration:none;font-weight:600;}
+      .footer-bar a{color:var(--accent); text-decoration:none; font-weight:700;}
       .footer-bar a.active{color:var(--accent-2); text-decoration:underline;}
       .footer-bar a:hover{text-decoration:underline;}
 
-      /* Buttons (Streamlit primary + our custom) */
+      /* Buttons */
       .stButton > button,
       .stDownloadButton > button,
       button[kind="primary"] {
@@ -121,11 +77,12 @@ def apply_theme(theme: str):
         color: #ffffff !important;
         border: 1px solid var(--accent) !important;
         border-radius: 8px !important;
-        padding: 0.5rem 0.9rem !important;
-        font-weight: 600 !important;
+        padding: 0.55rem 0.95rem !important;
+        font-weight: 700 !important;        /* Open Sans Bold for primary buttons */
         cursor: pointer !important;
         transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.03s ease !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.08) !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.18) !important;
+        font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
       }
       .stButton > button:hover,
       .stDownloadButton > button:hover,
@@ -135,31 +92,32 @@ def apply_theme(theme: str):
       }
       .stButton > button:active,
       .stDownloadButton > button:active,
-      button[kind="primary"]:active {
-        transform: translateY(1px);
-      }
+      button[kind="primary"]:active { transform: translateY(1px); }
       .stButton > button:focus-visible,
       .stDownloadButton > button:focus-visible,
       button[kind="primary"]:focus-visible {
-        outline: 3px solid rgba(66, 127, 216, 0.35) !important;
-        outline-offset: 2px !important;
+        outline: 3px solid rgba(142,192,255,0.35) !important; outline-offset: 2px !important;
       }
+
       /* Secondary / ghost */
       button[kind="secondary"] {
         background: transparent !important;
         color: var(--fg) !important;
         border: 1px solid var(--border) !important;
         border-radius: 8px !important;
+        font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+        font-weight: 600 !important;        /* Open Sans Semibold for secondary */
       }
-      button[kind="secondary"]:hover {
-        border-color: var(--accent) !important;
-      }
+      button[kind="secondary"]:hover { border-color: var(--accent) !important; }
 
       /* Inputs */
       input, textarea, select {
         border-radius: 8px !important;
         border: 1px solid var(--border) !important;
-        font-family: 'Alliance 2', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+        background: #131722 !important;
+        color: var(--fg) !important;
+        font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
+        font-weight: 400 !important;
       }
 
       .stDataFrame { border: 1px solid var(--border); border-radius: 8px; }
@@ -181,7 +139,7 @@ def apply_theme(theme: str):
 
       /* Sidebar sessions */
       .sidebar-inner { padding-top: 6px; }
-      .sidebar-header { font-weight: 600; margin: 8px 0 6px; color: var(--muted); }
+      .sidebar-header { font-weight: 700; margin: 8px 0 6px; color: var(--muted); }
       .conv-btn { width: 100%; text-align: left; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; background: var(--card); color: var(--fg); }
       .conv-btn:hover { border-color: var(--accent); }
 
@@ -190,6 +148,7 @@ def apply_theme(theme: str):
     </style>
     """
     st.markdown(css_vars + base, unsafe_allow_html=True)
+
 
 
 # =========================================================
@@ -203,10 +162,8 @@ def _qp_get_one(key: str):
 
 def set_tab_param(val: str | None):
     if val is None:
-        try:
-            del st.query_params["tab"]
-        except KeyError:
-            pass
+        try: del st.query_params["tab"]
+        except KeyError: pass
     else:
         st.query_params["tab"] = val
 
@@ -215,10 +172,8 @@ def get_tab_param() -> str | None:
 
 def set_thread_param(val: str | None):
     if val is None:
-        try:
-            del st.query_params["thread"]
-        except KeyError:
-            pass
+        try: del st.query_params["thread"]
+        except KeyError: pass
     else:
         st.query_params["thread"] = val
 
@@ -522,7 +477,7 @@ def answer_any_question(
     )
     system_prompt = (
         "You are a helpful assistant. Answer questions clearly and concisely.\n"
-        "If the user's question is about protein structures, AlphaFold, pLDDT, or misfold detection, "
+        "If the user's question is about protein structures pLDDT, or misfold detection, "
         "use the following context to ground your answer. If it's unrelated, ignore the context and "
         "answer normally.\n\n"
         f"Optional protein context:\n{protein_ctx}\n"
@@ -574,7 +529,7 @@ def render_header():
     st.markdown('<div class="topbar"></div>', unsafe_allow_html=True)
     cols = st.columns([5,3,2])
     with cols[0]:
-        st.markdown("### 🧬 AlphaFold Misfold Prediction Tool")
+        st.markdown("### Misfold ")
     with cols[1]:
         if is_logged_in():
             st.markdown(f"**Signed in as:** `{current_user()}`")
@@ -593,7 +548,6 @@ def render_header():
                     login_signup_ui()
 
 def render_footer():
-    # Determine active tab to optionally highlight
     active = st.session_state.get("nav", get_tab_param() or "Results")
     def _link(tab):
         cls = "active" if tab == active else ""
@@ -642,23 +596,10 @@ def render_messenger(thread_key: str, default_body: str = ""):
                 st.markdown("---")
 
 # =========================================================
-# Sidebar (theme, tabs, sessions, controls)
+# Sidebar (tabs, sessions, controls) — NO THEME TOGGLE
 # =========================================================
 def render_sidebar():
     with st.sidebar:
-        # Theme selector
-        st.header("🖼 Theme")
-        # Radio labels order is ["Dark","Light"], default index -> Light
-        theme = st.radio(
-            "Mode",
-            options=["Dark","Light"],
-            index=1 if st.session_state.get("theme","light")=="light" else 0,
-            horizontal=True
-        )
-        theme_val = "light" if theme == "Light" else "dark"
-        st.session_state["theme"] = theme_val
-        apply_theme(theme_val)
-
         # Sidebar tabs (navigation) — includes Account
         st.header("🧭 Tabs")
         current_default = st.session_state.get("nav", get_tab_param() or "Results")
@@ -669,17 +610,14 @@ def render_sidebar():
             label_visibility="collapsed",
         )
         st.session_state["nav"] = nav_choice
-        # keep URL in sync with selected tab
         set_tab_param(nav_choice)
 
         # Sessions list
         st.header("🗂 Sessions")
         if st.button("＋ New Analysis", use_container_width=True):
-            # Clear ephemeral state
             for k in list(st.session_state.keys()):
                 if k.startswith("chat_") or k.startswith("_ae_model_"):
                     st.session_state.pop(k)
-            # Clear all query params
             st.query_params.clear()
             st.rerun()
         rows = list_history(current_user(), limit=12) if is_logged_in() else list_history(None, limit=12)
@@ -713,13 +651,13 @@ def render_sidebar():
         show_raw_header = st.checkbox("Show raw PDB header lines", value=False)
         with st.expander("About"):
             st.write(
-                "Upload an AlphaFold structure (.pdb or .pdb.gz) to visualize per-residue pLDDT, "
+                "Upload an protein structure (.pdb or .pdb.gz) to visualize per-residue pLDDT, "
                 "fetch a UniProt function summary, and estimate potential misfolding via an autoencoder trained on pLDDT profiles."
             )
-            st.write("• **pLDDT** is AlphaFold’s per-residue confidence score (0–100). Low pLDDT often indicates flexible/disordered regions.")
+            st.write("• **pLDDT** is the per-residue confidence score (0–100). Low pLDDT often indicates flexible/disordered regions.")
             st.markdown("### 🔬 What are PDB files?")
             st.write(
-                "A **PDB file** stores 3D coordinates + metadata. AlphaFold PDBs store **pLDDT** in the B-factor column. "
+                "A **PDB file** stores 3D coordinates + metadata. PDBs store **pLDDT** in the B-factor column. "
                 "This app extracts pLDDT, fetches UniProt function, and runs misfold detection."
             )
         return nav_choice, uploaded, model_path, model_exists, threshold, show_uniprot, show_raw_header
@@ -839,69 +777,42 @@ def render_chatbot_tab(filename, accession, uni_name, uni_function, header_text,
             })
         st.rerun()
 
+# =========================================================
+# Results page (OpenAI-like cards)
+# =========================================================
 def render_results_like_openai(uploaded, model_exists, model_path, threshold, show_uniprot, show_raw_header):
-    # --- Page CSS (hero + cards) ---
     st.markdown("""
     <style>
-      .hero {
-        padding: 72px 0 36px;
-        text-align: center;
-        background: radial-gradient(1200px 400px at 50% -200px, rgba(66,127,216,0.10), transparent 60%);
-      }
-      .hero h1 {
-        font-size: clamp(32px, 5vw, 56px);
-        line-height: 1.05;
-        letter-spacing: -0.02em;
-        margin: 0 auto 14px;
-        max-width: 900px;
-        font-weight: 700;
-      }
-      .hero .sub {
-        color: var(--muted);
-        font-size: clamp(14px, 2vw, 18px);
-        margin: 0 auto 22px;
-        max-width: 780px;
-      }
-      .center-cta {
-        display: inline-flex; gap: 10px; align-items: center; justify-content: center;
-        padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--card);
-      }
-      .pill {
-        display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:999px;
-        font-size:12px; color: var(--muted); margin: 0 6px;
-      }
-      .grid {
-        display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin: 24px auto; max-width: 1100px;
-      }
-      .card {
-        grid-column: span 6; border:1px solid var(--border); border-radius:16px; background: var(--card);
-        padding: 18px; min-height: 120px;
-      }
+      .hero { padding: 72px 0 36px; text-align: center;
+              background: radial-gradient(1200px 400px at 50% -200px, rgba(66,127,216,0.10), transparent 60%); }
+      .hero h1 { font-size: clamp(32px, 5vw, 56px); line-height: 1.05; letter-spacing: -0.02em;
+                 margin: 0 auto 14px; max-width: 900px; font-weight: 700; }
+      .hero .sub { color: var(--muted); font-size: clamp(14px, 2vw, 18px);
+                   margin: 0 auto 22px; max-width: 780px; }
+      .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin: 24px auto; max-width: 1100px; }
+      .card { grid-column: span 6; border:1px solid var(--border); border-radius:16px; background: var(--card);
+              padding: 18px; min-height: 120px; }
       .card.wide { grid-column: 1 / -1; }
       .card h3 { margin: 0 0 8px; font-size: 18px; }
       .muted { color: var(--muted); }
-      .metric {
-        display:flex; gap: 16px; align-items:center; padding:12px; border:1px dashed var(--border);
-        border-radius:12px; background: rgba(0,0,0,0.02);
-      }
+      .metric { display:flex; gap: 16px; align-items:center; padding:12px; border:1px dashed var(--border);
+                border-radius:12px; background: rgba(255,255,255,0.03); }
       .metric b { font-size: 20px; }
       .chip { display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--border); font-size:12px; }
+      .pill { display:inline-block; padding:6px 10px; border:1px solid var(--border); border-radius:999px; font-size:12px; color: var(--muted); margin: 0 6px; }
       .kpi { display:flex; gap:14px; flex-wrap:wrap; }
       .kpi .pill { margin-top: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
-    # --- Hero ---
     st.markdown('<div class="hero">', unsafe_allow_html=True)
-    st.markdown("<h1>AlphaFold Misfold Prediction</h1>", unsafe_allow_html=True)
+    st.markdown("<h1>Misfold Prediction</h1>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="sub">Upload an AlphaFold PDB (or .pdb.gz). '
+        '<div class="sub">Upload an PDB (or .pdb.gz). '
         'We’ll extract <b>pLDDT</b>, fetch <b>UniProt</b> function, and run a lightweight '
         '<b>autoencoder</b> to flag potential misfolds—presented in a clean, minimal UI.</div>',
         unsafe_allow_html=True,
     )
-
-    # Center uploader (optional—your sidebar uploader still works)
     c1, c2, c3 = st.columns([1,2,1])
     with c2:
         up2 = st.file_uploader("Drop a .pdb or .pdb.gz here", type=["pdb", "gz"], key="center_uploader", label_visibility="collapsed")
@@ -909,83 +820,49 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
             uploaded = up2
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- Quick settings strip ---
-    cols = st.columns([2,2,2,3,3])
-    with cols[0]:
-        st.markdown("**Model**")
-        st.caption(("✅ Found" if model_exists else "❌ Missing") + f" `{model_path}`")
-    with cols[1]:
-        st.markdown("**Threshold**")
-        st.caption(f"{threshold:.3f} (MSE on normalized pLDDT)")
-    with cols[2]:
-        st.markdown("**UniProt**")
-        st.caption("On" if show_uniprot else "Off")
-    with cols[3]:
-        st.markdown("**Tips**")
-        st.caption("Low pLDDT (<50) often marks flexible/disordered regions.")
-    with cols[4]:
-        st.markdown("**Learn more**")
-        st.caption("[UniProt](https://www.uniprot.org) • [AlphaFold DB](https://alphafold.ebi.ac.uk)")
-
     st.markdown('<div class="grid">', unsafe_allow_html=True)
 
-    # If no file yet: show “how it works” cards and exit
     if uploaded is None:
         with st.container():
             st.markdown(
                 """
-                <div class="card">
-                  <h3>1. Upload</h3>
-                  <div class="muted">Provide a PDB or .pdb.gz. AlphaFold stores pLDDT in the B-factor column (CA atoms).</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+                <div class="card"><h3>1. Upload</h3>
+                <div class="muted">Provide a PDB or .pdb.gz. AlphaFold stores pLDDT in the B-factor column (CA atoms).</div></div>
+                """, unsafe_allow_html=True,
             )
             st.markdown(
                 """
-                <div class="card">
-                  <h3>2. Analyze</h3>
-                  <div class="muted">We extract pLDDT, summarize confidence, and (optionally) fetch UniProt function text.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+                <div class="card"><h3>2. Analyze</h3>
+                <div class="muted">We extract pLDDT, summarize confidence, and (optionally) fetch UniProt function text.</div></div>
+                """, unsafe_allow_html=True,
             )
             st.markdown(
                 """
-                <div class="card">
-                  <h3>3. Detect</h3>
-                  <div class="muted">A small autoencoder computes reconstruction error. If error > threshold → flagged.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+                <div class="card"><h3>3. Detect</h3>
+                <div class="muted">A small autoencoder computes reconstruction error. If error > threshold → flagged.</div></div>
+                """, unsafe_allow_html=True,
             )
             st.markdown(
                 """
-                <div class="card">
-                  <h3>4. Share</h3>
-                  <div class="muted">Discuss results in <b>Messenger</b>, save to <b>History</b>, or ask questions in <b>Ask</b>.</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+                <div class="card"><h3>4. Share</h3>
+                <div class="muted">Discuss results in <b>Messenger</b>, save to <b>History</b>, or ask questions in <b>Ask</b>.</div></div>
+                """, unsafe_allow_html=True,
             )
         st.markdown('</div>', unsafe_allow_html=True)
-        return  # nothing else to render
+        return
 
-    # ===== Process uploaded file (your existing logic, but presented as “cards”) =====
     tmp_path = f"temp_{uploaded.name}"
     with open(tmp_path, "wb") as f: f.write(uploaded.read())
 
     accession = None; description = None; uni_name = None; function_text = None
     scores = None; error = None; is_mf_flag = None
 
-    # Parse header + accession
     try:
         description = get_protein_description(tmp_path)
         accession = extract_uniprot_accession(tmp_path)
     except Exception as e:
         st.warning(f"Could not parse header/accession: {e}")
 
-    # Card: Protein summary
     with st.container():
         st.markdown('<div class="card wide">', unsafe_allow_html=True)
         st.markdown("#### Protein summary")
@@ -1008,7 +885,6 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
             st.write(f"- **Threshold**: `{threshold:.3f}`")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Card: UniProt function
     with st.container():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("#### UniProt function")
@@ -1025,7 +901,6 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
             st.caption("UniProt lookup disabled.")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Card: pLDDT chart
     with st.container():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("#### pLDDT profile")
@@ -1045,7 +920,6 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
             st.error(f"Failed to extract pLDDT scores: {e}"); scores = None
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Card: Prediction
     with st.container():
         st.markdown('<div class="card wide">', unsafe_allow_html=True)
         st.markdown("#### Misfold detection")
@@ -1071,14 +945,12 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
                 st.error(f"Prediction failed: {e}")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Save History
     try:
         if scores is not None and error is not None and is_mf_flag is not None:
             add_history(current_user(), uploaded.name, accession, float(error), float(threshold), int(is_mf_flag))
     except Exception as e:
         st.warning(f"Could not record history: {e}")
 
-    # Cleanup
     try: os.remove(tmp_path)
     except Exception: pass
 
@@ -1086,20 +958,17 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
 # Main App (sidebar tabs)
 # =========================================================
 def main():
-    # Apply theme early with LIGHT fallback
-    apply_theme(st.session_state.get("theme", "light"))
+    # Apply DARK theme (only)
+    apply_theme("dark")
     render_header()
 
-    # Sync selected tab from URL if present
     tab_q = get_tab_param()
     if tab_q in ["Results", "Messenger", "History", "Ask", "Account"]:
         st.session_state["nav"] = tab_q
 
     nav, uploaded, model_path, model_exists, threshold, show_uniprot, show_raw_header = render_sidebar()
 
-    accession = None; description = None; uni_name = None; function_text = None; scores = None; error = None
-
-        # RESULTS
+    # RESULTS
     if nav == "Results":
         render_results_like_openai(
             uploaded=uploaded,
@@ -1109,7 +978,7 @@ def main():
             show_uniprot=show_uniprot,
             show_raw_header=show_raw_header,
         )
-    # MESSENGER
+
     elif nav == "Messenger":
         thread_key = get_thread_param()
         if not thread_key:
@@ -1118,23 +987,14 @@ def main():
                 r0 = rows[0]; thread_key = r0["accession"] or r0["filename"]
         render_messenger(thread_key or "general", default_body="")
 
-    # HISTORY
     elif nav == "History":
         render_history_tab()
 
-    # CHATABOT (general QA)
     elif nav == "Ask":
-        filename = "no_file"
-        acc = None
-        u_name = None
-        u_func = None
-        header = None
-        sc = None
-        err = None
+        filename = "no_file"; acc = None; u_name = None; u_func = None; header = None; sc = None; err = None
         thr = threshold if "threshold" in locals() else None
         render_chatbot_tab(filename, acc, u_name, u_func, header, sc, err, thr)
 
-    # ACCOUNT
     elif nav == "Account":
         render_account_tab()
 
