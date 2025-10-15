@@ -24,10 +24,10 @@ load_dotenv()  # loads variables from .env into os.environ
 # =========================================================
 # Streamlit page config
 # =========================================================
-st.set_page_config(page_title="Misfold", layout="wide")
+st.set_page_config(page_title="AlphaFold Misfold Prediction Tool", layout="wide")
 
 # =========================================================
-# THEME: Dark-only (Alliance 2 font) + ChatGPT-like layout CSS
+# THEME: Dark-only with Open Sans + ChatGPT-like layout CSS
 # =========================================================
 def apply_theme(_: str = "dark"):
     css_vars = """
@@ -56,7 +56,7 @@ def apply_theme(_: str = "dark"):
       .stMarkdown, p, h1,h2,h3,h4,h5,h6, label, span, div { color: var(--fg); }
       section[data-testid="stSidebar"] { background: var(--card); border-right: 1px solid var(--border); }
       .topbar{
-          position:sticky; top:0; z-index:999; background:var(--card); padding:10px 16px;
+          position:sticky; top:0; z-index:999; background:var(--card); padding:8px 12px;
           border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px;
       }
       .footer-bar{
@@ -78,7 +78,7 @@ def apply_theme(_: str = "dark"):
         border: 1px solid var(--accent) !important;
         border-radius: 8px !important;
         padding: 0.55rem 0.95rem !important;
-        font-weight: 700 !important;        /* Open Sans Bold for primary buttons */
+        font-weight: 700 !important;
         cursor: pointer !important;
         transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.03s ease !important;
         box-shadow: 0 1px 2px rgba(0,0,0,0.18) !important;
@@ -86,10 +86,7 @@ def apply_theme(_: str = "dark"):
       }
       .stButton > button:hover,
       .stDownloadButton > button:hover,
-      button[kind="primary"]:hover {
-        background: var(--accent-2) !important;
-        border-color: var(--accent-2) !important;
-      }
+      button[kind="primary"]:hover { background: var(--accent-2) !important; border-color: var(--accent-2) !important; }
       .stButton > button:active,
       .stDownloadButton > button:active,
       button[kind="primary"]:active { transform: translateY(1px); }
@@ -101,12 +98,10 @@ def apply_theme(_: str = "dark"):
 
       /* Secondary / ghost */
       button[kind="secondary"] {
-        background: transparent !important;
-        color: var(--fg) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 8px !important;
+        background: transparent !important; color: var(--fg) !important;
+        border: 1px solid var(--border) !important; border-radius: 8px !important;
         font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
-        font-weight: 600 !important;        /* Open Sans Semibold for secondary */
+        font-weight: 600 !important;
       }
       button[kind="secondary"]:hover { border-color: var(--accent) !important; }
 
@@ -128,7 +123,8 @@ def apply_theme(_: str = "dark"):
 
       /* Chat bubbles */
       .chat-wrap { max-width: 880px; margin: 0 auto; }
-      .msg { border: 1px solid var(--border); background: var(--card); border-radius: 16px; padding: 14px 16px; margin: 8px 0; line-height: 1.55; }
+      .msg { border: 1px solid var(--border); background: var(--card);
+             border-radius: 16px; padding: 14px 16px; margin: 8px 0; line-height: 1.55; }
       .msg.assistant { background: rgba(105,163,218,0.08); }
       .msg.user { background: rgba(128,128,128,0.10); }
 
@@ -140,15 +136,12 @@ def apply_theme(_: str = "dark"):
       /* Sidebar sessions */
       .sidebar-inner { padding-top: 6px; }
       .sidebar-header { font-weight: 700; margin: 8px 0 6px; color: var(--muted); }
-      .conv-btn { width: 100%; text-align: left; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; background: var(--card); color: var(--fg); }
+      .conv-btn { width: 100%; text-align: left; padding: 8px 10px; border: 1px solid var(--border);
+                  border-radius: 8px; margin-bottom: 6px; background: var(--card); color: var(--fg); }
       .conv-btn:hover { border-color: var(--accent); }
-
-      .topbar { padding: 8px 12px; }
-      .topbar h1, .topbar h3, .topbar h4 { margin: 0; }
     </style>
     """
     st.markdown(css_vars + base, unsafe_allow_html=True)
-
 
 
 # =========================================================
@@ -295,9 +288,9 @@ def list_history(username: str | None, limit: int = 200):
         if username:
             cur = con.execute("SELECT * FROM history WHERE username = ? ORDER BY id DESC LIMIT ?",
                               (username, limit))
+            return list(cur.fetchall())
         else:
-            cur = con.execute("SELECT * FROM history ORDER BY id DESC LIMIT ?", (limit,))
-        return list(cur.fetchall())
+            return []  # hide history entirely when not logged in
 def clear_history(username: str):
     with _app_conn() as con:
         con.execute("DELETE FROM history WHERE username = ?", (username,))
@@ -451,7 +444,7 @@ def call_openai_chat(system_prompt: str, user_prompt: str) -> str:
         raise RuntimeError("OPENAI_API_KEY not set")
     try:
         from openai import OpenAI
-        client = OpenAI(api_key=api_key)
+        client = OpenAI(api_key="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")
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role":"system","content":system_prompt},{"role":"user","content":user_prompt}],
@@ -477,7 +470,7 @@ def answer_any_question(
     )
     system_prompt = (
         "You are a helpful assistant. Answer questions clearly and concisely.\n"
-        "If the user's question is about protein structures pLDDT, or misfold detection, "
+        "If the user's question is about protein structures, AlphaFold, pLDDT, or misfold detection, "
         "use the following context to ground your answer. If it's unrelated, ignore the context and "
         "answer normally.\n\n"
         f"Optional protein context:\n{protein_ctx}\n"
@@ -485,7 +478,7 @@ def answer_any_question(
     return call_openai_chat(system_prompt, question)
 
 # =========================================================
-# Header (with Sign in modal via st.dialog/popover) / Footer
+# Header (login modal/popover only) + Footer (dynamic links)
 # =========================================================
 def login_signup_ui():
     tabs = st.tabs(["Login", "Sign up"])
@@ -493,7 +486,7 @@ def login_signup_ui():
         with st.form("login_form"):
             user = st.text_input("Username", key="login_user")
             pwd = st.text_input("Password", type="password", key="login_pwd")
-            submit = st.form_submit_button("Get Started")
+            submit = st.form_submit_button("Login")
         if submit:
             if verify_user(user, pwd):
                 login(user)
@@ -526,42 +519,39 @@ def maybe_open_login_dialog():
         _dlg()
 
 def render_header():
+    # Title moved to sidebar; header only shows auth state + button
     st.markdown('<div class="topbar"></div>', unsafe_allow_html=True)
-    cols = st.columns([5,3,2])
-    with cols[0]:
-        st.markdown("### Misfold ")
+    cols = st.columns([7,3,2])
     with cols[1]:
         if is_logged_in():
             st.markdown(f"**Signed in as:** `{current_user()}`")
-        else:
-            st.markdown("")
     with cols[2]:
         if is_logged_in():
             if st.button("Logout", use_container_width=True):
                 logout(); st.success("Logged out."); st.rerun()
         else:
             if hasattr(st, "dialog"):
-                if st.button("Get Started", use_container_width=True):
+                if st.button("Login", use_container_width=True):
                     st.session_state["login_open"] = True
             else:
-                with st.popover("Get Started", use_container_width=True):
+                with st.popover("Login", use_container_width=True):
                     login_signup_ui()
 
 def render_footer():
+    # Build footer links dynamically, hiding History when logged out
     active = st.session_state.get("nav", get_tab_param() or "Results")
+    tabs = ["Results", "Messenger", "Ask", "Account"] if not is_logged_in() else ["Results", "Messenger", "History", "Ask", "Account"]
+    if active not in tabs:
+        active = "Results"
+        st.session_state["nav"] = active
+        set_tab_param(active)
+
     def _link(tab):
         cls = "active" if tab == active else ""
         return f'<a class="{cls}" href="?tab={tab}">{tab}</a>'
+
     st.markdown(
-        f"""
-        <div class="footer-bar">
-            {_link("Results")} •
-            {_link("Messenger")} •
-            {_link("History")} •
-            {_link("Ask")} •
-            {_link("Account")}
-        </div>
-        """,
+        f'<div class="footer-bar">{" • ".join(_link(t) for t in tabs)}</div>',
         unsafe_allow_html=True
     )
 
@@ -596,44 +586,55 @@ def render_messenger(thread_key: str, default_body: str = ""):
                 st.markdown("---")
 
 # =========================================================
-# Sidebar (tabs, sessions, controls) — NO THEME TOGGLE
+# Sidebar (title, tabs, sessions, controls)
 # =========================================================
 def render_sidebar():
     with st.sidebar:
-        # Sidebar tabs (navigation) — includes Account
-        st.header("🧭 Tabs")
+        # --- Title moved to sidebar ---
+        st.markdown("## Misfold")
+        st.caption("pLDDT • UniProt • Autoencoder misfold detection")
+
+        # Sidebar tabs (hide History when not logged in)
+        all_tabs = ["Results", "Messenger", "History", "Ask", "Account"]
+        tabs = all_tabs if is_logged_in() else ["Results", "Messenger", "Ask", "Account"]
+
         current_default = st.session_state.get("nav", get_tab_param() or "Results")
+        if current_default not in tabs:
+            current_default = "Results"
         nav_choice = st.radio(
             "Navigate",
-            options=["Results", "Messenger", "History", "Ask", "Account"],
-            index=["Results","Messenger","History","Ask","Account"].index(current_default),
+            options=tabs,
+            index=tabs.index(current_default),
             label_visibility="collapsed",
         )
         st.session_state["nav"] = nav_choice
         set_tab_param(nav_choice)
 
-        # Sessions list
+        # Sessions list (hidden when not logged in)
         st.header("🗂 Sessions")
-        if st.button("＋ New Analysis", use_container_width=True):
-            for k in list(st.session_state.keys()):
-                if k.startswith("chat_") or k.startswith("_ae_model_"):
-                    st.session_state.pop(k)
-            st.query_params.clear()
-            st.rerun()
-        rows = list_history(current_user(), limit=12) if is_logged_in() else list_history(None, limit=12)
-        st.markdown('<div class="sidebar-inner">', unsafe_allow_html=True)
-        st.markdown('<div class="sidebar-header">Recent</div>', unsafe_allow_html=True)
-        if rows:
-            for r in rows:
-                label = (r["accession"] or r["filename"] or "session")
-                label = re.sub(r"\.pdb(\.gz)?$", "", label)
-                if st.button(label, key=f"h_{r['id']}", use_container_width=True, help=str(r["created_at"])):
-                    set_thread_param(r["accession"] or r["filename"])
-                    set_tab_param("Messenger")
-                    st.rerun()
+        if is_logged_in():
+            if st.button("＋ New Analysis", use_container_width=True):
+                for k in list(st.session_state.keys()):
+                    if k.startswith("chat_") or k.startswith("_ae_model_"):
+                        st.session_state.pop(k)
+                st.query_params.clear()
+                st.rerun()
+            rows = list_history(current_user(), limit=12)
+            st.markdown('<div class="sidebar-inner">', unsafe_allow_html=True)
+            st.markdown('<div class="sidebar-header">Recent</div>', unsafe_allow_html=True)
+            if rows:
+                for r in rows:
+                    label = (r["accession"] or r["filename"] or "session")
+                    label = re.sub(r"\.pdb(\.gz)?$", "", label)
+                    if st.button(label, key=f"h_{r['id']}", use_container_width=True, help=str(r["created_at"])):
+                        set_thread_param(r["accession"] or r["filename"])
+                        set_tab_param("Messenger")
+                        st.rerun()
+            else:
+                st.caption("No sessions yet.")
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.caption("No sessions yet.")
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.caption("Sign in to view your analysis history.")
 
         # Controls
         st.header("⚙️ Controls")
@@ -651,13 +652,13 @@ def render_sidebar():
         show_raw_header = st.checkbox("Show raw PDB header lines", value=False)
         with st.expander("About"):
             st.write(
-                "Upload an protein structure (.pdb or .pdb.gz) to visualize per-residue pLDDT, "
+                "Upload an AlphaFold structure (.pdb or .pdb.gz) to visualize per-residue pLDDT, "
                 "fetch a UniProt function summary, and estimate potential misfolding via an autoencoder trained on pLDDT profiles."
             )
-            st.write("• **pLDDT** is the per-residue confidence score (0–100). Low pLDDT often indicates flexible/disordered regions.")
+            st.write("• **pLDDT** is AlphaFold’s per-residue confidence score (0–100). Low pLDDT often indicates flexible/disordered regions.")
             st.markdown("### 🔬 What are PDB files?")
             st.write(
-                "A **PDB file** stores 3D coordinates + metadata. PDBs store **pLDDT** in the B-factor column. "
+                "A **PDB file** stores 3D coordinates + metadata. AlphaFold PDBs store **pLDDT** in the B-factor column. "
                 "This app extracts pLDDT, fetches UniProt function, and runs misfold detection."
             )
         return nav_choice, uploaded, model_path, model_exists, threshold, show_uniprot, show_raw_header
@@ -668,8 +669,11 @@ def render_sidebar():
 def render_history_tab():
     st.subheader("🗂 History")
     user = current_user()
-    rows = list_history(user, limit=500) if user else list_history(None, limit=200)
-    st.caption("Showing **your** recent analyses." if user else "Showing **recent public** analyses (not logged in).")
+    if not user:
+        st.info("Please sign in to view your history.")
+        return
+    rows = list_history(user, limit=500)
+    st.caption("Showing **your** recent analyses.")
     if not rows:
         st.info("No history yet."); return
     df = pd.DataFrame(rows, columns=rows[0].keys())
@@ -686,7 +690,7 @@ def render_history_tab():
 def render_account_tab():
     st.subheader("👤 Account")
     if not is_logged_in():
-        st.info("You’re not signed in. Click **Sign in** in the top bar.")
+        st.info("You’re not signed in. Click **Login** in the top bar.")
         return
     u = get_user(current_user())
     st.markdown(f"**Username:** `{u['username']}`  •  **Created:** `{u['created_at']}`")
@@ -723,7 +727,7 @@ def render_account_tab():
 # Chatbot tab — GENERAL QA (OpenAI only)
 # =========================================================
 def render_chatbot_tab(filename, accession, uni_name, uni_function, header_text, scores, recon_error, threshold):
-    st.subheader("🤖 Chatbot (General QA)")
+    st.subheader("Ask")
     chat_key = f"chat_{accession or filename}"
     st.session_state.setdefault(chat_key, [])
 
@@ -806,9 +810,8 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="hero">', unsafe_allow_html=True)
-    st.markdown("<h1>Misfold Prediction</h1>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="sub">Upload an PDB (or .pdb.gz). '
+        '<div class="sub">Upload an AlphaFold PDB (or .pdb.gz). '
         'We’ll extract <b>pLDDT</b>, fetch <b>UniProt</b> function, and run a lightweight '
         '<b>autoencoder</b> to flag potential misfolds—presented in a clean, minimal UI.</div>',
         unsafe_allow_html=True,
@@ -958,17 +961,20 @@ def render_results_like_openai(uploaded, model_exists, model_path, threshold, sh
 # Main App (sidebar tabs)
 # =========================================================
 def main():
-    # Apply DARK theme (only)
     apply_theme("dark")
     render_header()
 
+    # Sync selected tab from URL if present
     tab_q = get_tab_param()
-    if tab_q in ["Results", "Messenger", "History", "Ask", "Account"]:
+    allowed_tabs = ["Results", "Messenger", "History", "Ask", "Account"] if is_logged_in() else ["Results", "Messenger", "Ask", "Account"]
+    if tab_q in allowed_tabs:
         st.session_state["nav"] = tab_q
+    elif tab_q and tab_q not in allowed_tabs:
+        st.session_state["nav"] = "Results"
+        set_tab_param("Results")
 
     nav, uploaded, model_path, model_exists, threshold, show_uniprot, show_raw_header = render_sidebar()
 
-    # RESULTS
     if nav == "Results":
         render_results_like_openai(
             uploaded=uploaded,
@@ -982,7 +988,7 @@ def main():
     elif nav == "Messenger":
         thread_key = get_thread_param()
         if not thread_key:
-            rows = list_history(current_user(), limit=1) if is_logged_in() else list_history(None, limit=1)
+            rows = list_history(current_user(), limit=1) if is_logged_in() else []
             if rows:
                 r0 = rows[0]; thread_key = r0["accession"] or r0["filename"]
         render_messenger(thread_key or "general", default_body="")
