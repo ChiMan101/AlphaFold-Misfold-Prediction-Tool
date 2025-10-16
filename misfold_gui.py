@@ -564,13 +564,13 @@ def render_messenger(thread_key: str, default_body: str = ""):
     if not is_logged_in():
         st.info("Please **sign in** to post messages.")
         st.text_area("Message (login required to send)", value=default_body, height=100, disabled=True)
-        st.button("Send", disabled=True)
+        st.button("->", disabled=True)
     else:
         author = current_user() or "Analyst"
         body = st.text_area("Message", value=default_body, height=100, key=f"compose_{thread_key}")
         c1, c2, _ = st.columns([1,1,6])
         with c1:
-            if st.button("Send", key=f"send_{thread_key}"):
+            if st.button("->", key=f"send_{thread_key}"):
                 add_msg(thread_key, author, body); st.success("Sent."); st.rerun()
         with c2:
             if st.button("Refresh", key=f"refresh_{thread_key}"):
@@ -591,7 +591,7 @@ def render_messenger(thread_key: str, default_body: str = ""):
 def render_sidebar():
     with st.sidebar:
         # --- Title moved to sidebar ---
-        st.markdown("## Misfold")
+        st.markdown("## Genome")
         st.caption("pLDDT • UniProt • Autoencoder misfold detection")
 
         # Sidebar tabs (hide History when not logged in)
@@ -758,7 +758,7 @@ def render_chatbot_tab(filename, accession, uni_name, uni_function, header_text,
             help="If your question is about proteins/misfolds, I’ll automatically use the current protein context."
         )
     with cols[2]:
-        ask = st.button("Send", key=f"ask_{chat_key}")
+        ask = st.button("->", key=f"ask_{chat_key}")
     st.markdown('<div class="hint">Tip: You can ask general questions — not just misfolds.</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
